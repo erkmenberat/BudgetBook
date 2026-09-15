@@ -480,3 +480,29 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+ 
+# Build-Output
+bin/
+obj/
+ 
+# Rider / VS Code
+.idea/
+*.swp
+ 
+# Lokale Datenbank (SQLite)
+*.db
+*.db-shm
+*.db-wal
+ 
+# Secrets / lokale Config
+appsettings.Development.json
+appsettings.*.local.json
+ 
+# NuGet
+*.nupkg
+packages/
