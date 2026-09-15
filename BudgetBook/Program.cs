@@ -1,3 +1,4 @@
+using BudgetBook.Models;
 using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("BudgetBookContext") ?? throw new InvalidOperationException("Connection string 'BudgetBookContext' not found.");
@@ -8,6 +9,13 @@ builder.Services.AddDbContext<BudgetBookContext>(options => options.UseSqlite(co
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    SeedData.Initialize(services);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

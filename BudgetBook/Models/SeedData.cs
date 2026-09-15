@@ -19,6 +19,59 @@ public static class SeedData
             {
                 return;   // DB has been seeded
             }
+
+            context.Category.AddRange(
+                new Category
+                {
+                    Name = "Wohnen",
+                    Type = "Miete",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Wohnen",
+                    Type = "Nebenkosten",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Lebensmittel",
+                    Type = "Supermarkt",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Lebensmittel",
+                    Type = "Restaurant",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Transport",
+                    Type = "Öffis",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Transport",
+                    Type = "Sprit",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Freizeit",
+                    Type = "Abos",
+                    IsActive = true
+                },
+                new Category
+                {
+                    Name = "Freizeit",
+                    Type = "Ausgehen",
+                    IsActive = true
+                }
+            );
+
+            context.SaveChanges();
         }
     }
 }

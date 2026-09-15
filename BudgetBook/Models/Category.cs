@@ -2,10 +2,10 @@
 {
     public class Category
     {
-        public required int Id { get; set; }
+        public int Id { get; set; }
         public required string Name { get; set; }
         public required string Type { get; set; }
         public required bool IsActive { get; set; }
-        public required List<Transaction> Transactions { get; set; }
+        public List<Transaction>? Transactions { get; set; }
     }
 }
