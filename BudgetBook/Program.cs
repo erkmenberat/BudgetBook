@@ -1,4 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("BudgetBookContext") ?? throw new InvalidOperationException("Connection string 'BudgetBookContext' not found.");
+
+builder.Services.AddDbContext<BudgetBookContext>(options => options.UseSqlite(connectionString));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
