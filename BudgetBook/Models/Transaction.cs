@@ -15,8 +15,8 @@ namespace BudgetBook.Models
         public string? Description { get; set; }
         public required int CategoryId { get; set; }
         public required Category Category { get; set; }
-        public int UserId { get; set; }
-        public required User User { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public ApplicationUser? User { get; set; }
 
     }
 }

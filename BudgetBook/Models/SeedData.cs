@@ -15,7 +15,7 @@ public static class SeedData
                 DbContextOptions<BudgetBookContext>>()))
         {
             // Look for any movies.
-            if (context.Transaction.Any() || context.User.Any() ||context.Category.Any())
+            if (context.Transaction.Any() ||context.Category.Any())
             {
                 return;   // DB has been seeded
             }

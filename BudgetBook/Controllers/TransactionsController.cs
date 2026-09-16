@@ -1,21 +1,30 @@
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BudgetBook.Models;
 
+[Authorize]
 public class TransactionsController : Controller
 {
     private readonly BudgetBookContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public TransactionsController(BudgetBookContext context)
+    public TransactionsController(BudgetBookContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: TRANSACTIONS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.Transaction.ToListAsync());
+        var userId = _userManager.GetUserId(User);
+        return View(await _context.Transaction
+            .Where(t => t.UserId == userId)
+            .ToListAsync());
     }
 
     // GET: TRANSACTIONS/Details/5
@@ -26,8 +35,9 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
+        var userId = _userManager.GetUserId(User);
         var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
         if (transaction == null)
         {
             return NotFound();
@@ -39,6 +49,7 @@ public class TransactionsController : Controller
     // GET: TRANSACTIONS/Create
     public IActionResult Create()
     {
+        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name");
         return View();
     }
 
@@ -47,14 +58,18 @@ public class TransactionsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId,Category,UserId,User")] Transaction transaction)
+    public async Task<IActionResult> Create([Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId")] Transaction transaction)
     {
+        transaction.UserId = _userManager.GetUserId(User)!;
+        ModelState.Remove(nameof(Transaction.UserId));
+        ModelState.Remove(nameof(Transaction.User));
         if (ModelState.IsValid)
         {
             _context.Add(transaction);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
         return View(transaction);
     }
 
@@ -66,11 +81,13 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
+        var userId = _userManager.GetUserId(User);
         var transaction = await _context.Transaction.FindAsync(id);
-        if (transaction == null)
+        if (transaction == null || transaction.UserId != userId)
         {
             return NotFound();
         }
+        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
         return View(transaction);
     }
 
@@ -79,13 +96,22 @@ public class TransactionsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId,Category,UserId,User")] Transaction transaction)
+    public async Task<IActionResult> Edit(int? id, [Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId")] Transaction transaction)
     {
         if (id != transaction.Id)
         {
             return NotFound();
         }
 
+        var userId = _userManager.GetUserId(User);
+        if (!await _context.Transaction.AnyAsync(t => t.Id == id && t.UserId == userId))
+        {
+            return NotFound();
+        }
+
+        transaction.UserId = userId!;
+        ModelState.Remove(nameof(Transaction.UserId));
+        ModelState.Remove(nameof(Transaction.User));
         if (ModelState.IsValid)
         {
             try
@@ -106,6 +132,7 @@ public class TransactionsController : Controller
             }
             return RedirectToAction(nameof(Index));
         }
+        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
         return View(transaction);
     }
 
@@ -117,8 +144,9 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
+        var userId = _userManager.GetUserId(User);
         var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
         if (transaction == null)
         {
             return NotFound();
@@ -132,7 +160,9 @@ public class TransactionsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var transaction = await _context.Transaction.FindAsync(id);
+        var userId = _userManager.GetUserId(User);
+        var transaction = await _context.Transaction
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
         if (transaction != null)
         {
             _context.Transaction.Remove(transaction);
