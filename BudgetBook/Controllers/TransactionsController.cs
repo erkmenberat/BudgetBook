@@ -65,7 +65,7 @@ public class TransactionsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TransactionFormViewModel viewModel)
     {
-        await ValidateCategoryAsync(viewModel.CategoryId);
+        await ValidateCategoryAsync(viewModel.CategoryId, viewModel.Type);
 
         if (!ModelState.IsValid)
         {
@@ -77,7 +77,7 @@ public class TransactionsController : Controller
         {
             Type = viewModel.Type,
             Amount = viewModel.Amount,
-            BookingDate = viewModel.BookingDate,
+            BookingDate = viewModel.BookingDate!.Value,
             CreatedAt = DateTime.Now,
             Description = viewModel.Description,
             CategoryId = viewModel.CategoryId,
@@ -134,7 +134,7 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        await ValidateCategoryAsync(viewModel.CategoryId);
+        await ValidateCategoryAsync(viewModel.CategoryId, viewModel.Type);
 
         if (!ModelState.IsValid)
         {
@@ -144,7 +144,7 @@ public class TransactionsController : Controller
 
         transaction.Type = viewModel.Type;
         transaction.Amount = viewModel.Amount;
-        transaction.BookingDate = viewModel.BookingDate;
+        transaction.BookingDate = viewModel.BookingDate!.Value;
         transaction.Description = viewModel.Description;
         transaction.CategoryId = viewModel.CategoryId;
 
@@ -226,12 +226,18 @@ public class TransactionsController : Controller
             .ToListAsync();
     }
 
-    private async Task ValidateCategoryAsync(int categoryId)
+    private async Task ValidateCategoryAsync(int categoryId, string type)
     {
-        var categoryExists = await _context.Category.AnyAsync(c => c.Id == categoryId && c.IsActive);
-        if (!categoryExists)
+        var category = await _context.Category.FirstOrDefaultAsync(c => c.Id == categoryId && c.IsActive);
+        if (category == null)
         {
             ModelState.AddModelError(nameof(TransactionFormViewModel.CategoryId), "Bitte eine gueltige Kategorie auswaehlen.");
+            return;
+        }
+
+        if (category.Type != type)
+        {
+            ModelState.AddModelError(nameof(TransactionFormViewModel.CategoryId), "Die Kategorie muss zum Typ passen.");
         }
     }
 

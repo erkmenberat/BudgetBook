@@ -17,7 +17,7 @@ namespace BudgetBook.ViewModels
 
         [Required(ErrorMessage = "Bitte ein Buchungsdatum angeben.")]
         [DataType(DataType.Date)]
-        public DateTime BookingDate { get; set; } = DateTime.Today;
+        public DateTime? BookingDate { get; set; } = DateTime.Today;
 
         [StringLength(250, ErrorMessage = "Die Beschreibung darf maximal 250 Zeichen lang sein.")]
         public string? Description { get; set; }
