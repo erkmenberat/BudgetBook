@@ -22,19 +22,28 @@
         </tr>
     </thead>
     <tbody>
+@if (!Model.Any())
+{
+        <tr>
+            <td colspan="6">Es wurden noch keine Buchungen angelegt.</td>
+        </tr>
+}
+else
+{
 @foreach (var item in Model) {
         <tr>
-            <td>@Html.DisplayFor(model => item.Type)</td>
-            <td>@Html.DisplayFor(model => item.Amount)</td>
-            <td>@Html.DisplayFor(model => item.BookingDate)</td>
+            <td>@item.Type</td>
+            <td>@item.Amount.ToString("0.00")</td>
+            <td>@item.BookingDate.ToString("dd.MM.yyyy")</td>
             <td>@(item.Category == null ? "" : item.Category.Name + " - " + item.Category.Type)</td>
-            <td>@Html.DisplayFor(model => item.Description)</td>
+            <td>@item.Description</td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Bearbeiten</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Loeschen</a>
             </td>
         </tr>
+}
 }
     </tbody>
 </table>
