@@ -12,6 +12,18 @@
             <h2>Create a new account.</h2>
             <hr />
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Name" class="form-control" placeholder="Vorname" />
+                <label asp-for="Input.Name">Vorname</label>
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Surname" class="form-control" placeholder="Nachname" />
+                <label asp-for="Input.Surname">Nachname</label>
+                <span asp-validation-for="Input.Surname" class="text-danger"></span>
+            </div>
+
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label asp-for="Input.Email">Email</label>
