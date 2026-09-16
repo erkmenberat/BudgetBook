@@ -1,10 +1,10 @@
-
+using BudgetBook.Models;
+using BudgetBook.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BudgetBook.Models;
 
 [Authorize]
 public class TransactionsController : Controller
@@ -19,12 +19,16 @@ public class TransactionsController : Controller
     }
 
     // GET: TRANSACTIONS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
-        return View(await _context.Transaction
+        var transactions = await _context.Transaction
+            .Include(t => t.Category)
             .Where(t => t.UserId == userId)
-            .ToListAsync());
+            .OrderByDescending(t => t.BookingDate)
+            .ToListAsync();
+
+        return View(transactions);
     }
 
     // GET: TRANSACTIONS/Details/5
@@ -35,9 +39,7 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        var userId = _userManager.GetUserId(User);
-        var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+        var transaction = await FindOwnTransactionAsync(id.Value);
         if (transaction == null)
         {
             return NotFound();
@@ -47,30 +49,44 @@ public class TransactionsController : Controller
     }
 
     // GET: TRANSACTIONS/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name");
-        return View();
+        var viewModel = new TransactionFormViewModel
+        {
+            BookingDate = DateTime.Today,
+            Categories = await GetCategorySelectListAsync()
+        };
+
+        return View(viewModel);
     }
 
     // POST: TRANSACTIONS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId")] Transaction transaction)
+    public async Task<IActionResult> Create(TransactionFormViewModel viewModel)
     {
-        transaction.UserId = _userManager.GetUserId(User)!;
-        ModelState.Remove(nameof(Transaction.UserId));
-        ModelState.Remove(nameof(Transaction.User));
-        if (ModelState.IsValid)
+        await ValidateCategoryAsync(viewModel.CategoryId);
+
+        if (!ModelState.IsValid)
         {
-            _context.Add(transaction);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            viewModel.Categories = await GetCategorySelectListAsync(viewModel.CategoryId);
+            return View(viewModel);
         }
-        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
-        return View(transaction);
+
+        var transaction = new Transaction
+        {
+            Type = viewModel.Type,
+            Amount = viewModel.Amount,
+            BookingDate = viewModel.BookingDate,
+            CreatedAt = DateTime.Now,
+            Description = viewModel.Description,
+            CategoryId = viewModel.CategoryId,
+            UserId = _userManager.GetUserId(User)!
+        };
+
+        _context.Add(transaction);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: TRANSACTIONS/Edit/5
@@ -81,59 +97,72 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        var userId = _userManager.GetUserId(User);
-        var transaction = await _context.Transaction.FindAsync(id);
-        if (transaction == null || transaction.UserId != userId)
+        var transaction = await FindOwnTransactionAsync(id.Value);
+        if (transaction == null)
         {
             return NotFound();
         }
-        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
-        return View(transaction);
+
+        var viewModel = new TransactionFormViewModel
+        {
+            Id = transaction.Id,
+            Type = transaction.Type,
+            Amount = transaction.Amount,
+            BookingDate = transaction.BookingDate,
+            Description = transaction.Description,
+            CategoryId = transaction.CategoryId,
+            Categories = await GetCategorySelectListAsync(transaction.CategoryId)
+        };
+
+        return View(viewModel);
     }
 
     // POST: TRANSACTIONS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Type,Amount,BookingDate,CreatedAt,Description,CategoryId")] Transaction transaction)
+    public async Task<IActionResult> Edit(int? id, TransactionFormViewModel viewModel)
     {
-        if (id != transaction.Id)
+        if (id == null || id != viewModel.Id)
         {
             return NotFound();
         }
 
-        var userId = _userManager.GetUserId(User);
-        if (!await _context.Transaction.AnyAsync(t => t.Id == id && t.UserId == userId))
+        var transaction = await _context.Transaction
+            .FirstOrDefaultAsync(t => t.Id == id.Value && t.UserId == _userManager.GetUserId(User));
+        if (transaction == null)
         {
             return NotFound();
         }
 
-        transaction.UserId = userId!;
-        ModelState.Remove(nameof(Transaction.UserId));
-        ModelState.Remove(nameof(Transaction.User));
-        if (ModelState.IsValid)
+        await ValidateCategoryAsync(viewModel.CategoryId);
+
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                _context.Update(transaction);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TransactionExists(transaction.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+            viewModel.Categories = await GetCategorySelectListAsync(viewModel.CategoryId);
+            return View(viewModel);
         }
-        ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", transaction.CategoryId);
-        return View(transaction);
+
+        transaction.Type = viewModel.Type;
+        transaction.Amount = viewModel.Amount;
+        transaction.BookingDate = viewModel.BookingDate;
+        transaction.Description = viewModel.Description;
+        transaction.CategoryId = viewModel.CategoryId;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await TransactionExistsAsync(transaction.Id))
+            {
+                return NotFound();
+            }
+
+            throw;
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: TRANSACTIONS/Delete/5
@@ -144,9 +173,7 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        var userId = _userManager.GetUserId(User);
-        var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+        var transaction = await FindOwnTransactionAsync(id.Value);
         if (transaction == null)
         {
             return NotFound();
@@ -160,20 +187,56 @@ public class TransactionsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var userId = _userManager.GetUserId(User);
-        var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
-        if (transaction != null)
+        if (id == null)
         {
-            _context.Transaction.Remove(transaction);
+            return NotFound();
         }
 
+        var transaction = await _context.Transaction
+            .FirstOrDefaultAsync(t => t.Id == id.Value && t.UserId == _userManager.GetUserId(User));
+        if (transaction == null)
+        {
+            return NotFound();
+        }
+
+        _context.Transaction.Remove(transaction);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
-    private bool TransactionExists(int? id)
+    private async Task<Transaction?> FindOwnTransactionAsync(int id)
     {
-        return _context.Transaction.Any(e => e.Id == id);
+        return await _context.Transaction
+            .Include(t => t.Category)
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == _userManager.GetUserId(User));
+    }
+
+    private async Task<IEnumerable<SelectListItem>> GetCategorySelectListAsync(int? selectedCategoryId = null)
+    {
+        return await _context.Category
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.Name)
+            .ThenBy(c => c.Type)
+            .Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name + " - " + c.Type,
+                Selected = selectedCategoryId.HasValue && c.Id == selectedCategoryId.Value
+            })
+            .ToListAsync();
+    }
+
+    private async Task ValidateCategoryAsync(int categoryId)
+    {
+        var categoryExists = await _context.Category.AnyAsync(c => c.Id == categoryId && c.IsActive);
+        if (!categoryExists)
+        {
+            ModelState.AddModelError(nameof(TransactionFormViewModel.CategoryId), "Bitte eine gueltige Kategorie auswaehlen.");
+        }
+    }
+
+    private async Task<bool> TransactionExistsAsync(int id)
+    {
+        return await _context.Transaction.AnyAsync(e => e.Id == id);
     }
 }
