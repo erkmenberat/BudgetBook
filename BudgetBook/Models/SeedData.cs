@@ -90,30 +90,18 @@ public static class SeedData
                 return;   // DB has been seeded
             }
 
-            // Jede Buchung gehört zu einem User -> Test-User anlegen
+            // Jede Buchung gehört zu einem User -> zwei Test-User fuer die Berechtigungstests
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var testUser = userManager.FindByEmailAsync("test@example.com").GetAwaiter().GetResult();
-            if (testUser == null)
-            {
-                testUser = new ApplicationUser
-                {
-                    UserName = "test@example.com",
-                    Email = "test@example.com",
-                    Name = "Max",
-                    Surname = "Mustermann"
-                };
-                var result = userManager.CreateAsync(testUser, "Test123!").GetAwaiter().GetResult();
-                if (!result.Succeeded)
-                {
-                    throw new InvalidOperationException("Test-User konnte nicht angelegt werden.");
-                }
-            }
+            var userA = EnsureUser(userManager, "usera@example.com", "Max", "Mustermann");
+            var userB = EnsureUser(userManager, "userb@example.com", "Erika", "Musterfrau");
 
             var miete = context.Category.First(c => c.Name == "Miete");
             var supermarkt = context.Category.First(c => c.Name == "Supermarkt");
             var oeffis = context.Category.First(c => c.Name == "Öffis");
             var abos = context.Category.First(c => c.Name == "Abos");
             var ausgehen = context.Category.First(c => c.Name == "Ausgehen");
+            var restaurant = context.Category.First(c => c.Name == "Restaurant");
+            var gehalt = context.Category.First(c => c.Name == "Gehalt");
 
             context.Transaction.AddRange(
                 new Transaction
@@ -126,7 +114,7 @@ public static class SeedData
                     Description = "Miete September",
                     CategoryId = miete.Id,
                     Category = miete,
-                    UserId = testUser.Id
+                    UserId = userA.Id
                 },
                 new Transaction
                 {
@@ -138,7 +126,7 @@ public static class SeedData
                     Description = "Wocheneinkauf",
                     CategoryId = supermarkt.Id,
                     Category = supermarkt,
-                    UserId = testUser.Id
+                    UserId = userA.Id
                 },
                 new Transaction
                 {
@@ -150,7 +138,7 @@ public static class SeedData
                     Description = "Deutschlandticket",
                     CategoryId = oeffis.Id,
                     Category = oeffis,
-                    UserId = testUser.Id
+                    UserId = userA.Id
                 },
                 new Transaction
                 {
@@ -162,7 +150,7 @@ public static class SeedData
                     Description = "Netflix",
                     CategoryId = abos.Id,
                     Category = abos,
-                    UserId = testUser.Id
+                    UserId = userA.Id
                 },
                 new Transaction
                 {
@@ -174,11 +162,77 @@ public static class SeedData
                     Description = "Kino mit Freunden",
                     CategoryId = ausgehen.Id,
                     Category = ausgehen,
-                    UserId = testUser.Id
+                    UserId = userA.Id
+                },
+                new Transaction
+                {
+                    Id = 0,
+                    Type = "Einnahme",
+                    Amount = 2450.00m,
+                    BookingDate = new DateTime(2026, 9, 1),
+                    CreatedAt = DateTime.Now,
+                    Description = "Gehalt September",
+                    CategoryId = gehalt.Id,
+                    Category = gehalt,
+                    UserId = userB.Id
+                },
+                new Transaction
+                {
+                    Id = 0,
+                    Type = "Ausgabe",
+                    Amount = 41.20m,
+                    BookingDate = new DateTime(2026, 9, 4),
+                    CreatedAt = DateTime.Now,
+                    Description = "Einkauf Wochenende",
+                    CategoryId = supermarkt.Id,
+                    Category = supermarkt,
+                    UserId = userB.Id
+                },
+                new Transaction
+                {
+                    Id = 0,
+                    Type = "Ausgabe",
+                    Amount = 28.90m,
+                    BookingDate = new DateTime(2026, 9, 8),
+                    CreatedAt = DateTime.Now,
+                    Description = "Mittagessen",
+                    CategoryId = restaurant.Id,
+                    Category = restaurant,
+                    UserId = userB.Id
                 }
             );
 
             context.SaveChanges();
         }
+    }
+
+    // Legt einen Test-User an, falls er noch nicht existiert
+    private static ApplicationUser EnsureUser(
+        UserManager<ApplicationUser> userManager,
+        string email,
+        string name,
+        string surname)
+    {
+        var user = userManager.FindByEmailAsync(email).GetAwaiter().GetResult();
+        if (user != null)
+        {
+            return user;
+        }
+
+        user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            Name = name,
+            Surname = surname
+        };
+
+        var result = userManager.CreateAsync(user, "Test123!").GetAwaiter().GetResult();
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Test-User {email} konnte nicht angelegt werden.");
+        }
+
+        return user;
     }
 }
