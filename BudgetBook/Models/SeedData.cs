@@ -21,50 +21,62 @@ public static class SeedData
                 context.Category.AddRange(
                     new Category
                     {
-                        Name = "Wohnen",
-                        Type = "Miete",
+                        Name = "Miete",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Wohnen",
-                        Type = "Nebenkosten",
+                        Name = "Nebenkosten",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Lebensmittel",
-                        Type = "Supermarkt",
+                        Name = "Supermarkt",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Lebensmittel",
-                        Type = "Restaurant",
+                        Name = "Restaurant",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Transport",
-                        Type = "Öffis",
+                        Name = "Öffis",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Transport",
-                        Type = "Sprit",
+                        Name = "Sprit",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Freizeit",
-                        Type = "Abos",
+                        Name = "Abos",
+                        Type = "Ausgabe",
                         IsActive = true
                     },
                     new Category
                     {
-                        Name = "Freizeit",
-                        Type = "Ausgehen",
+                        Name = "Ausgehen",
+                        Type = "Ausgabe",
+                        IsActive = true
+                    },
+                    new Category
+                    {
+                        Name = "Gehalt",
+                        Type = "Einnahme",
+                        IsActive = true
+                    },
+                    new Category
+                    {
+                        Name = "Sonstige Einnahmen",
+                        Type = "Einnahme",
                         IsActive = true
                     }
                 );
@@ -97,11 +109,11 @@ public static class SeedData
                 }
             }
 
-            var miete = context.Category.First(c => c.Type == "Miete");
-            var supermarkt = context.Category.First(c => c.Type == "Supermarkt");
-            var oeffis = context.Category.First(c => c.Type == "Öffis");
-            var abos = context.Category.First(c => c.Type == "Abos");
-            var ausgehen = context.Category.First(c => c.Type == "Ausgehen");
+            var miete = context.Category.First(c => c.Name == "Miete");
+            var supermarkt = context.Category.First(c => c.Name == "Supermarkt");
+            var oeffis = context.Category.First(c => c.Name == "Öffis");
+            var abos = context.Category.First(c => c.Name == "Abos");
+            var ausgehen = context.Category.First(c => c.Name == "Ausgehen");
 
             context.Transaction.AddRange(
                 new Transaction
