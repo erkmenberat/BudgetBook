@@ -16,6 +16,18 @@
         <input asp-for="To" type="date" class="form-control" />
     </div>
     <div class="col-auto">
+        <label asp-for="Type" class="form-label"></label>
+        <select asp-for="Type" asp-items="Model.TypeOptions" class="form-select">
+            <option value="">Alle</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <label asp-for="CategoryId" class="form-label"></label>
+        <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="form-select">
+            <option value="">Alle</option>
+        </select>
+    </div>
+    <div class="col-auto">
         <button type="submit" class="btn btn-primary">Filtern</button>
         <a asp-action="Index" class="btn btn-outline-secondary">Zuruecksetzen</a>
     </div>

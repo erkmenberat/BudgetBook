@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BudgetBook.ViewModels
 {
@@ -11,6 +12,16 @@ namespace BudgetBook.ViewModels
         [Display(Name = "Bis")]
         [DataType(DataType.Date)]
         public DateTime? To { get; set; }
+
+        [Display(Name = "Typ")]
+        public string? Type { get; set; }
+
+        [Display(Name = "Kategorie")]
+        public int? CategoryId { get; set; }
+
+        public IEnumerable<SelectListItem> TypeOptions { get; set; } = new List<SelectListItem>();
+
+        public IEnumerable<SelectListItem> CategoryOptions { get; set; } = new List<SelectListItem>();
 
         public decimal TotalIncome { get; set; }
 

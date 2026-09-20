@@ -3,6 +3,7 @@ using BudgetBook.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace BudgetBook.Controllers
@@ -29,6 +30,9 @@ namespace BudgetBook.Controllers
             filter.TransactionCount = await query.CountAsync();
             filter.ExpensesByCategory = await GetExpensesByCategoryAsync(query, filter.TotalExpense);
             filter.MonthlySummaries = await GetMonthlySummariesAsync(query);
+
+            filter.TypeOptions = BuildTypeOptions(filter.Type);
+            filter.CategoryOptions = await BuildCategoryOptionsAsync(filter.CategoryId);
 
             return View(filter);
         }
@@ -104,7 +108,45 @@ namespace BudgetBook.Controllers
                 query = query.Where(t => t.BookingDate < endOfDay);
             }
 
+            if (!string.IsNullOrEmpty(filter.Type))
+            {
+                query = query.Where(t => t.Type == filter.Type);
+            }
+
+            if (filter.CategoryId.HasValue)
+            {
+                query = query.Where(t => t.CategoryId == filter.CategoryId.Value);
+            }
+
             return query;
+        }
+
+        private static IEnumerable<SelectListItem> BuildTypeOptions(string? selectedType)
+        {
+            var types = new[] { "Einnahme", "Ausgabe" };
+
+            return types
+                .Select(type => new SelectListItem
+                {
+                    Value = type,
+                    Text = type,
+                    Selected = type == selectedType
+                })
+                .ToList();
+        }
+
+        // Fuer den Filter auch inaktive Kategorien anbieten, damit aeltere Buchungen auffindbar bleiben.
+        private async Task<IEnumerable<SelectListItem>> BuildCategoryOptionsAsync(int? selectedCategoryId)
+        {
+            return await _context.Category
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name + " - " + c.Type,
+                    Selected = selectedCategoryId.HasValue && c.Id == selectedCategoryId.Value
+                })
+                .ToListAsync();
         }
 
         // Summiert die Betraege eines Typs; ohne Treffer ist das Ergebnis 0 und nicht NULL.
