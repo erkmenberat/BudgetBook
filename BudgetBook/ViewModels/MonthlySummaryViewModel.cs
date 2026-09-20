@@ -1,6 +1,6 @@
-namespace BudgetBook.ViewModels
+﻿namespace BudgetBook.ViewModels
 {
-    // Einnahmen und Ausgaben eines einzelnen Monats im gewaehlten Zeitraum
+    // Einnahmen und Ausgaben eines einzelnen Monats im gewählten Zeitraum
     public class MonthlySummaryViewModel
     {
         public int Year { get; set; }

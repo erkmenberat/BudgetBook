@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-//using BudgetBook.Data;
 using System;
 using System.Linq;
 
@@ -22,61 +21,61 @@ public static class SeedData
                     new Category
                     {
                         Name = "Miete",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Nebenkosten",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Supermarkt",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Restaurant",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Öffis",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Sprit",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Abos",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Ausgehen",
-                        Type = "Ausgabe",
+                        Type = TransactionType.Expense,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Gehalt",
-                        Type = "Einnahme",
+                        Type = TransactionType.Income,
                         IsActive = true
                     },
                     new Category
                     {
                         Name = "Sonstige Einnahmen",
-                        Type = "Einnahme",
+                        Type = TransactionType.Income,
                         IsActive = true
                     }
                 );
@@ -90,14 +89,14 @@ public static class SeedData
                 return;   // DB has been seeded
             }
 
-            // Jede Buchung gehört zu einem User -> zwei Test-User fuer die Berechtigungstests
+            // Jede Buchung gehört zu einem User -> zwei Test-User für die Berechtigungstests
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var userA = EnsureUser(userManager, "usera@example.com", "Max", "Mustermann");
             var userB = EnsureUser(userManager, "userb@example.com", "Erika", "Musterfrau");
 
             var miete = context.Category.First(c => c.Name == "Miete");
             var supermarkt = context.Category.First(c => c.Name == "Supermarkt");
-            var oeffis = context.Category.First(c => c.Name == "Öffis");
+            var nahverkehr = context.Category.First(c => c.Name == "Öffis");
             var abos = context.Category.First(c => c.Name == "Abos");
             var ausgehen = context.Category.First(c => c.Name == "Ausgehen");
             var restaurant = context.Category.First(c => c.Name == "Restaurant");
@@ -106,8 +105,7 @@ public static class SeedData
             context.Transaction.AddRange(
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 650.00m,
                     BookingDate = new DateTime(2026, 9, 1),
                     CreatedAt = DateTime.Now,
@@ -118,8 +116,7 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 54.30m,
                     BookingDate = new DateTime(2026, 9, 3),
                     CreatedAt = DateTime.Now,
@@ -130,20 +127,18 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 58.00m,
                     BookingDate = new DateTime(2026, 9, 5),
                     CreatedAt = DateTime.Now,
                     Description = "Deutschlandticket",
-                    CategoryId = oeffis.Id,
-                    Category = oeffis,
+                    CategoryId = nahverkehr.Id,
+                    Category = nahverkehr,
                     UserId = userA.Id
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 13.99m,
                     BookingDate = new DateTime(2026, 9, 10),
                     CreatedAt = DateTime.Now,
@@ -154,8 +149,7 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 32.50m,
                     BookingDate = new DateTime(2026, 9, 12),
                     CreatedAt = DateTime.Now,
@@ -166,8 +160,7 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Einnahme",
+                    Type = TransactionType.Income,
                     Amount = 2450.00m,
                     BookingDate = new DateTime(2026, 9, 1),
                     CreatedAt = DateTime.Now,
@@ -178,8 +171,7 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 41.20m,
                     BookingDate = new DateTime(2026, 9, 4),
                     CreatedAt = DateTime.Now,
@@ -190,8 +182,7 @@ public static class SeedData
                 },
                 new Transaction
                 {
-                    Id = 0,
-                    Type = "Ausgabe",
+                    Type = TransactionType.Expense,
                     Amount = 28.90m,
                     BookingDate = new DateTime(2026, 9, 8),
                     CreatedAt = DateTime.Now,
@@ -227,6 +218,8 @@ public static class SeedData
             Surname = surname
         };
 
+        // Bewusst öffentliche Demo-Zugangsdaten für die Prüfung, siehe README.
+        // In einem produktiven Projekt gehört das Passwort in User Secrets.
         var result = userManager.CreateAsync(user, "Test123!").GetAwaiter().GetResult();
         if (!result.Succeeded)
         {

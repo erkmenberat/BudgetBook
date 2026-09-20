@@ -1,4 +1,4 @@
-@model BudgetBook.ViewModels.StatisticsViewModel
+﻿@model BudgetBook.ViewModels.StatisticsViewModel
 
 @{
     ViewData["Title"] = "Statistik";
@@ -32,14 +32,14 @@
     </div>
     <div class="col-auto">
         <button type="submit" class="btn btn-primary">Filtern</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Zuruecksetzen</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Zurücksetzen</a>
     </div>
 </form>
 
 @if (!ViewData.ModelState.IsValid)
 {
     <div class="alert alert-danger" role="alert">
-        <strong>Der Filter ist ungueltig. Es werden keine Zahlen berechnet.</strong>
+        <strong>Der Filter ist ungültig. Es werden keine Zahlen berechnet.</strong>
         <div asp-validation-summary="All"></div>
     </div>
 }

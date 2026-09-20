@@ -1,4 +1,4 @@
-@model TransactionFormViewModel
+﻿@model TransactionFormViewModel
 
 @{
     ViewData["Title"] = "Buchung anlegen";
@@ -15,7 +15,7 @@
             <div class="form-group">
                 <label asp-for="Type" class="control-label">Typ</label>
                 <select asp-for="Type" class="form-control">
-                    <option value="">Bitte auswaehlen</option>
+                    <option value="">Bitte auswählen</option>
                     <option value="Ausgabe">Ausgabe</option>
                     <option value="Einnahme">Einnahme</option>
                 </select>
@@ -43,7 +43,7 @@
             <div class="form-group">
                 <label asp-for="CategoryId" class="control-label">Kategorie</label>
                 <select asp-for="CategoryId" class="form-control" asp-items="Model.Categories">
-                    <option value="0">Bitte auswaehlen</option>
+                    <option value="0">Bitte auswählen</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
@@ -56,7 +56,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Zurueck zur Liste</a>
+    <a asp-action="Index">Zurück zur Liste</a>
 </div>
 
 @section Scripts {

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BudgetBook.Models
 {
@@ -7,11 +7,11 @@ namespace BudgetBook.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Bitte einen Typ angeben.")]
-        [RegularExpression("^(Einnahme|Ausgabe)$", ErrorMessage = "Der Typ muss Einnahme oder Ausgabe sein.")]
+        [RegularExpression(TransactionType.ValidationPattern, ErrorMessage = "Der Typ muss Einnahme oder Ausgabe sein.")]
         [StringLength(20, ErrorMessage = "Der Typ darf maximal 20 Zeichen lang sein.")]
         public required string Type { get; set; }
 
-        [Range(0.01, 999999999.99, ErrorMessage = "Der Betrag muss groesser als 0 sein.")]
+        [Range(0.01, 999999999.99, ErrorMessage = "Der Betrag muss größer als 0 sein.")]
         public decimal Amount { get; set; }
 
         [Required(ErrorMessage = "Bitte ein Buchungsdatum angeben.")]
@@ -24,7 +24,7 @@ namespace BudgetBook.Models
         [StringLength(250, ErrorMessage = "Die Beschreibung darf maximal 250 Zeichen lang sein.")]
         public string? Description { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Bitte eine Kategorie auswaehlen.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Bitte eine Kategorie auswählen.")]
         public int CategoryId { get; set; }
 
         public Category? Category { get; set; }

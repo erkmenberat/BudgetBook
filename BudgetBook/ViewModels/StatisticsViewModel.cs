@@ -1,3 +1,4 @@
+﻿using BudgetBook.Models;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -14,7 +15,7 @@ namespace BudgetBook.ViewModels
         public DateTime? To { get; set; }
 
         [Display(Name = "Typ")]
-        [RegularExpression("^(Einnahme|Ausgabe)$", ErrorMessage = "Der Typ muss Einnahme oder Ausgabe sein.")]
+        [RegularExpression(TransactionType.ValidationPattern, ErrorMessage = "Der Typ muss Einnahme oder Ausgabe sein.")]
         public string? Type { get; set; }
 
         [Display(Name = "Kategorie")]
@@ -38,7 +39,7 @@ namespace BudgetBook.ViewModels
 
         public List<MonthlySummaryViewModel> MonthlySummaries { get; set; } = new();
 
-        // Ausgabenkategorie mit der groessten Summe; null, wenn es keine Ausgaben gibt
+        // Ausgabenkategorie mit der größten Summe; null, wenn es keine Ausgaben gibt
         public CategorySummaryViewModel? TopExpenseCategory => ExpensesByCategory.FirstOrDefault();
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

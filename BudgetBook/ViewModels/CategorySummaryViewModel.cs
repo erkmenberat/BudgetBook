@@ -1,6 +1,6 @@
-namespace BudgetBook.ViewModels
+﻿namespace BudgetBook.ViewModels
 {
-    // Summe der Ausgaben einer einzelnen Kategorie im gewaehlten Zeitraum
+    // Summe der Ausgaben einer einzelnen Kategorie im gewählten Zeitraum
     public class CategorySummaryViewModel
     {
         public int CategoryId { get; set; }

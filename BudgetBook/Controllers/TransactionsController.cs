@@ -1,4 +1,4 @@
-using BudgetBook.Models;
+﻿using BudgetBook.Models;
 using BudgetBook.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -127,8 +127,7 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(t => t.Id == id.Value && t.UserId == _userManager.GetUserId(User));
+        var transaction = await FindOwnTransactionAsync(id.Value, includeCategory: false);
         if (transaction == null)
         {
             return NotFound();
@@ -192,8 +191,7 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        var transaction = await _context.Transaction
-            .FirstOrDefaultAsync(t => t.Id == id.Value && t.UserId == _userManager.GetUserId(User));
+        var transaction = await FindOwnTransactionAsync(id.Value, includeCategory: false);
         if (transaction == null)
         {
             return NotFound();
@@ -204,11 +202,18 @@ public class TransactionsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<Transaction?> FindOwnTransactionAsync(int id)
+    // Einzige Stelle, an der eine Buchung geladen wird: nie ohne Prüfung der angemeldeten Person
+    private async Task<Transaction?> FindOwnTransactionAsync(int id, bool includeCategory = true)
     {
-        return await _context.Transaction
-            .Include(t => t.Category)
-            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == _userManager.GetUserId(User));
+        var userId = _userManager.GetUserId(User);
+
+        var query = _context.Transaction.AsQueryable();
+        if (includeCategory)
+        {
+            query = query.Include(t => t.Category);
+        }
+
+        return await query.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
     }
 
     private async Task<IEnumerable<SelectListItem>> GetCategorySelectListAsync(int? selectedCategoryId = null)
@@ -231,7 +236,7 @@ public class TransactionsController : Controller
         var category = await _context.Category.FirstOrDefaultAsync(c => c.Id == categoryId && c.IsActive);
         if (category == null)
         {
-            ModelState.AddModelError(nameof(TransactionFormViewModel.CategoryId), "Bitte eine gueltige Kategorie auswaehlen.");
+            ModelState.AddModelError(nameof(TransactionFormViewModel.CategoryId), "Bitte eine gültige Kategorie auswählen.");
             return;
         }
 

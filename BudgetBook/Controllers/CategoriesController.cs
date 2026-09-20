@@ -1,10 +1,10 @@
-
+﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BudgetBook.Models;
 
-// Spaeter: [Authorize(Roles = "Admin")], sobald es Rollen gibt
+// Später: [Authorize(Roles = "Admin")], sobald es Rollen gibt
 [Authorize]
 public class CategoriesController : Controller
 {

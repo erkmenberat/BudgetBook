@@ -1,9 +1,9 @@
-@model BudgetBook.ViewModels.StatisticsViewModel
+﻿@model BudgetBook.ViewModels.StatisticsViewModel
 
 @if (!Model.HasData)
 {
     <div class="alert alert-info">
-        Fuer den gewaehlten Zeitraum gibt es keine Buchungen.
+        Für den gewählten Zeitraum gibt es keine Buchungen.
     </div>
 }
 
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<p class="text-muted">Beruecksichtigte Buchungen: @Model.TransactionCount</p>
+<p class="text-muted">Berücksichtigte Buchungen: @Model.TransactionCount</p>
 
 <h2 class="h4 mt-4">Ausgaben nach Kategorie</h2>
 <table class="table">
@@ -68,7 +68,7 @@
 @if (!Model.ExpensesByCategory.Any())
 {
         <tr>
-            <td colspan="4">Im gewaehlten Zeitraum gibt es keine Ausgaben.</td>
+            <td colspan="4">Im gewählten Zeitraum gibt es keine Ausgaben.</td>
         </tr>
 }
 else
@@ -86,7 +86,7 @@ else
     </tbody>
 </table>
 
-<h2 class="h4 mt-4">Monatsuebersicht</h2>
+<h2 class="h4 mt-4">Monatsübersicht</h2>
 <table class="table">
     <thead>
         <tr>
@@ -101,7 +101,7 @@ else
 @if (!Model.MonthlySummaries.Any())
 {
         <tr>
-            <td colspan="5">Im gewaehlten Zeitraum gibt es keine Buchungen.</td>
+            <td colspan="5">Im gewählten Zeitraum gibt es keine Buchungen.</td>
         </tr>
 }
 else

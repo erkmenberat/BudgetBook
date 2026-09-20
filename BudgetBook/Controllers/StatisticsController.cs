@@ -1,4 +1,4 @@
-using BudgetBook.Models;
+﻿using BudgetBook.Models;
 using BudgetBook.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +26,7 @@ namespace BudgetBook.Controllers
             filter.TypeOptions = BuildTypeOptions(filter.Type);
             filter.CategoryOptions = await BuildCategoryOptionsAsync(filter.CategoryId);
 
-            // Bei einem ungueltigen Filter keine Zahlen berechnen, sondern nur die Fehlermeldung anzeigen
+            // Bei einem ungültigen Filter keine Zahlen berechnen, sondern nur die Fehlermeldung anzeigen
             if (!ModelState.IsValid)
             {
                 return View(filter);
@@ -34,8 +34,8 @@ namespace BudgetBook.Controllers
 
             var query = BuildOwnTransactionsQuery(filter);
 
-            filter.TotalIncome = await SumAmountAsync(query, "Einnahme");
-            filter.TotalExpense = await SumAmountAsync(query, "Ausgabe");
+            filter.TotalIncome = await SumAmountAsync(query, TransactionType.Income);
+            filter.TotalExpense = await SumAmountAsync(query, TransactionType.Expense);
             filter.TransactionCount = await query.CountAsync();
             filter.ExpensesByCategory = await GetExpensesByCategoryAsync(query, filter.TotalExpense);
             filter.MonthlySummaries = await GetMonthlySummariesAsync(query);
@@ -48,7 +48,7 @@ namespace BudgetBook.Controllers
             IQueryable<Transaction> query, decimal totalExpense)
         {
             var summaries = await query
-                .Where(t => t.Type == "Ausgabe")
+                .Where(t => t.Type == TransactionType.Expense)
                 .GroupBy(t => new { t.CategoryId, CategoryName = t.Category!.Name })
                 .Select(g => new CategorySummaryViewModel
                 {
@@ -59,7 +59,7 @@ namespace BudgetBook.Controllers
                 })
                 .ToListAsync();
 
-            // SQLite kann nicht zuverlaessig nach decimal sortieren, darum erst nach dem Laden sortieren
+            // SQLite kann nicht zuverlässig nach decimal sortieren, darum erst nach dem Laden sortieren
             summaries = summaries
                 .OrderByDescending(s => s.Total)
                 .ThenBy(s => s.CategoryName)
@@ -82,8 +82,8 @@ namespace BudgetBook.Controllers
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
-                    TotalIncome = g.Sum(t => t.Type == "Einnahme" ? t.Amount : 0m),
-                    TotalExpense = g.Sum(t => t.Type == "Ausgabe" ? t.Amount : 0m),
+                    TotalIncome = g.Sum(t => t.Type == TransactionType.Income ? t.Amount : 0m),
+                    TotalExpense = g.Sum(t => t.Type == TransactionType.Expense ? t.Amount : 0m),
                     TransactionCount = g.Count()
                 })
                 .ToListAsync();
@@ -94,7 +94,7 @@ namespace BudgetBook.Controllers
                 .ToList();
         }
 
-        // Liefert nur die Buchungen der angemeldeten Person, eingeschraenkt auf den gewaehlten Zeitraum.
+        // Liefert nur die Buchungen der angemeldeten Person, eingeschränkt auf den gewählten Zeitraum.
         private IQueryable<Transaction> BuildOwnTransactionsQuery(StatisticsViewModel filter)
         {
             var userId = _userManager.GetUserId(User);
@@ -109,7 +109,7 @@ namespace BudgetBook.Controllers
 
             if (filter.To.HasValue)
             {
-                // Bis-Datum einschliessen, auch wenn ein Buchungsdatum eine Uhrzeit enthaelt
+                // Bis-Datum einschließen, auch wenn ein Buchungsdatum eine Uhrzeit enthält
                 var endOfDay = filter.To.Value.Date.AddDays(1);
                 query = query.Where(t => t.BookingDate < endOfDay);
             }
@@ -129,9 +129,7 @@ namespace BudgetBook.Controllers
 
         private static IEnumerable<SelectListItem> BuildTypeOptions(string? selectedType)
         {
-            var types = new[] { "Einnahme", "Ausgabe" };
-
-            return types
+            return TransactionType.All
                 .Select(type => new SelectListItem
                 {
                     Value = type,
@@ -141,7 +139,7 @@ namespace BudgetBook.Controllers
                 .ToList();
         }
 
-        // Fuer den Filter auch inaktive Kategorien anbieten, damit aeltere Buchungen auffindbar bleiben.
+        // Für den Filter auch inaktive Kategorien anbieten, damit ältere Buchungen auffindbar bleiben.
         private async Task<IEnumerable<SelectListItem>> BuildCategoryOptionsAsync(int? selectedCategoryId)
         {
             return await _context.Category
@@ -155,7 +153,7 @@ namespace BudgetBook.Controllers
                 .ToListAsync();
         }
 
-        // Summiert die Betraege eines Typs; ohne Treffer ist das Ergebnis 0 und nicht NULL.
+        // Summiert die Beträge eines Typs; ohne Treffer ist das Ergebnis 0 und nicht NULL.
         private static async Task<decimal> SumAmountAsync(IQueryable<Transaction> query, string type)
         {
             return await query
