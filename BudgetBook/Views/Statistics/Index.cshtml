@@ -10,16 +10,19 @@
     <div class="col-auto">
         <label asp-for="From" class="form-label"></label>
         <input asp-for="From" type="date" class="form-control" />
+        <span asp-validation-for="From" class="text-danger"></span>
     </div>
     <div class="col-auto">
         <label asp-for="To" class="form-label"></label>
         <input asp-for="To" type="date" class="form-control" />
+        <span asp-validation-for="To" class="text-danger"></span>
     </div>
     <div class="col-auto">
         <label asp-for="Type" class="form-label"></label>
         <select asp-for="Type" asp-items="Model.TypeOptions" class="form-select">
             <option value="">Alle</option>
         </select>
+        <span asp-validation-for="Type" class="text-danger"></span>
     </div>
     <div class="col-auto">
         <label asp-for="CategoryId" class="form-label"></label>
@@ -33,122 +36,14 @@
     </div>
 </form>
 
-@if (!Model.HasData)
+@if (!ViewData.ModelState.IsValid)
 {
-    <div class="alert alert-info">
-        Fuer den gewaehlten Zeitraum gibt es keine Buchungen.
+    <div class="alert alert-danger" role="alert">
+        <strong>Der Filter ist ungueltig. Es werden keine Zahlen berechnet.</strong>
+        <div asp-validation-summary="All"></div>
     </div>
-}
-
-<div class="row">
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Einnahmen</h5>
-                <p class="card-text fs-4 text-success">@Model.TotalIncome.ToString("0.00") EUR</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Ausgaben</h5>
-                <p class="card-text fs-4 text-danger">@Model.TotalExpense.ToString("0.00") EUR</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Saldo</h5>
-                <p class="card-text fs-4 @(Model.Balance < 0 ? "text-danger" : "text-success")">
-                    @Model.Balance.ToString("0.00") EUR
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Top-Kategorie</h5>
-                @if (Model.TopExpenseCategory == null)
-                {
-                    <p class="card-text fs-5 text-muted">Keine Ausgaben</p>
-                }
-                else
-                {
-                    <p class="card-text fs-5 mb-0">@Model.TopExpenseCategory.CategoryName</p>
-                    <small class="text-muted">@Model.TopExpenseCategory.Total.ToString("0.00") EUR</small>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<p class="text-muted">Beruecksichtigte Buchungen: @Model.TransactionCount</p>
-
-<h2 class="h4 mt-4">Ausgaben nach Kategorie</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Kategorie</th>
-            <th class="text-end">Buchungen</th>
-            <th class="text-end">Summe</th>
-            <th class="text-end">Anteil</th>
-        </tr>
-    </thead>
-    <tbody>
-@if (!Model.ExpensesByCategory.Any())
-{
-        <tr>
-            <td colspan="4">Im gewaehlten Zeitraum gibt es keine Ausgaben.</td>
-        </tr>
 }
 else
 {
-@foreach (var category in Model.ExpensesByCategory)
-{
-        <tr>
-            <td>@category.CategoryName</td>
-            <td class="text-end">@category.TransactionCount</td>
-            <td class="text-end">@category.Total.ToString("0.00") EUR</td>
-            <td class="text-end">@category.Share.ToString("0.0") %</td>
-        </tr>
+    <partial name="_StatisticsResults" model="Model" />
 }
-}
-    </tbody>
-</table>
-
-<h2 class="h4 mt-4">Monatsuebersicht</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Monat</th>
-            <th class="text-end">Buchungen</th>
-            <th class="text-end">Einnahmen</th>
-            <th class="text-end">Ausgaben</th>
-            <th class="text-end">Saldo</th>
-        </tr>
-    </thead>
-    <tbody>
-@if (!Model.MonthlySummaries.Any())
-{
-        <tr>
-            <td colspan="5">Im gewaehlten Zeitraum gibt es keine Buchungen.</td>
-        </tr>
-}
-else
-{
-@foreach (var month in Model.MonthlySummaries)
-{
-        <tr>
-            <td>@month.Label</td>
-            <td class="text-end">@month.TransactionCount</td>
-            <td class="text-end text-success">@month.TotalIncome.ToString("0.00")</td>
-            <td class="text-end text-danger">@month.TotalExpense.ToString("0.00")</td>
-            <td class="text-end @(month.Balance < 0 ? "text-danger" : "text-success")">@month.Balance.ToString("0.00")</td>
-        </tr>
-}
-}
-    </tbody>
-</table>

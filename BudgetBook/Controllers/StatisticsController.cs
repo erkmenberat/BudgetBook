@@ -23,6 +23,15 @@ namespace BudgetBook.Controllers
         // GET: STATISTICS
         public async Task<IActionResult> Index(StatisticsViewModel filter)
         {
+            filter.TypeOptions = BuildTypeOptions(filter.Type);
+            filter.CategoryOptions = await BuildCategoryOptionsAsync(filter.CategoryId);
+
+            // Bei einem ungueltigen Filter keine Zahlen berechnen, sondern nur die Fehlermeldung anzeigen
+            if (!ModelState.IsValid)
+            {
+                return View(filter);
+            }
+
             var query = BuildOwnTransactionsQuery(filter);
 
             filter.TotalIncome = await SumAmountAsync(query, "Einnahme");
@@ -30,9 +39,6 @@ namespace BudgetBook.Controllers
             filter.TransactionCount = await query.CountAsync();
             filter.ExpensesByCategory = await GetExpensesByCategoryAsync(query, filter.TotalExpense);
             filter.MonthlySummaries = await GetMonthlySummariesAsync(query);
-
-            filter.TypeOptions = BuildTypeOptions(filter.Type);
-            filter.CategoryOptions = await BuildCategoryOptionsAsync(filter.CategoryId);
 
             return View(filter);
         }
