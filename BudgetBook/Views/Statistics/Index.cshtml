@@ -1,0 +1,60 @@
+@model BudgetBook.ViewModels.StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Statistik";
+}
+
+<h1>Statistik</h1>
+
+<form asp-action="Index" method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-auto">
+        <label asp-for="From" class="form-label"></label>
+        <input asp-for="From" type="date" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label asp-for="To" class="form-label"></label>
+        <input asp-for="To" type="date" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtern</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Zuruecksetzen</a>
+    </div>
+</form>
+
+@if (!Model.HasData)
+{
+    <div class="alert alert-info">
+        Fuer den gewaehlten Zeitraum gibt es keine Buchungen.
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Einnahmen</h5>
+                <p class="card-text fs-4 text-success">@Model.TotalIncome.ToString("0.00") EUR</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Ausgaben</h5>
+                <p class="card-text fs-4 text-danger">@Model.TotalExpense.ToString("0.00") EUR</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Saldo</h5>
+                <p class="card-text fs-4 @(Model.Balance < 0 ? "text-danger" : "text-success")">
+                    @Model.Balance.ToString("0.00") EUR
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="text-muted">Beruecksichtigte Buchungen: @Model.TransactionCount</p>
