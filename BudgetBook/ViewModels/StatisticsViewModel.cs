@@ -21,5 +21,12 @@ namespace BudgetBook.ViewModels
         public int TransactionCount { get; set; }
 
         public bool HasData => TransactionCount > 0;
+
+        public List<CategorySummaryViewModel> ExpensesByCategory { get; set; } = new();
+
+        public List<MonthlySummaryViewModel> MonthlySummaries { get; set; } = new();
+
+        // Ausgabenkategorie mit der groessten Summe; null, wenn es keine Ausgaben gibt
+        public CategorySummaryViewModel? TopExpenseCategory => ExpensesByCategory.FirstOrDefault();
     }
 }

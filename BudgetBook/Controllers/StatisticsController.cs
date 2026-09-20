@@ -27,8 +27,61 @@ namespace BudgetBook.Controllers
             filter.TotalIncome = await SumAmountAsync(query, "Einnahme");
             filter.TotalExpense = await SumAmountAsync(query, "Ausgabe");
             filter.TransactionCount = await query.CountAsync();
+            filter.ExpensesByCategory = await GetExpensesByCategoryAsync(query, filter.TotalExpense);
+            filter.MonthlySummaries = await GetMonthlySummariesAsync(query);
 
             return View(filter);
+        }
+
+        // Ausgaben je Kategorie, absteigend nach Summe. Das erste Element ist die Top-Kategorie.
+        private static async Task<List<CategorySummaryViewModel>> GetExpensesByCategoryAsync(
+            IQueryable<Transaction> query, decimal totalExpense)
+        {
+            var summaries = await query
+                .Where(t => t.Type == "Ausgabe")
+                .GroupBy(t => new { t.CategoryId, CategoryName = t.Category!.Name })
+                .Select(g => new CategorySummaryViewModel
+                {
+                    CategoryId = g.Key.CategoryId,
+                    CategoryName = g.Key.CategoryName,
+                    Total = g.Sum(t => t.Amount),
+                    TransactionCount = g.Count()
+                })
+                .ToListAsync();
+
+            // SQLite kann nicht zuverlaessig nach decimal sortieren, darum erst nach dem Laden sortieren
+            summaries = summaries
+                .OrderByDescending(s => s.Total)
+                .ThenBy(s => s.CategoryName)
+                .ToList();
+
+            foreach (var summary in summaries)
+            {
+                summary.Share = totalExpense == 0m ? 0m : summary.Total / totalExpense * 100m;
+            }
+
+            return summaries;
+        }
+
+        // Alle Buchungen je Monat, neuester Monat zuerst
+        private static async Task<List<MonthlySummaryViewModel>> GetMonthlySummariesAsync(IQueryable<Transaction> query)
+        {
+            var summaries = await query
+                .GroupBy(t => new { t.BookingDate.Year, t.BookingDate.Month })
+                .Select(g => new MonthlySummaryViewModel
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    TotalIncome = g.Sum(t => t.Type == "Einnahme" ? t.Amount : 0m),
+                    TotalExpense = g.Sum(t => t.Type == "Ausgabe" ? t.Amount : 0m),
+                    TransactionCount = g.Count()
+                })
+                .ToListAsync();
+
+            return summaries
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.Month)
+                .ToList();
         }
 
         // Liefert nur die Buchungen der angemeldeten Person, eingeschraenkt auf den gewaehlten Zeitraum.
