@@ -3,6 +3,15 @@
 Persönliche Einnahmen- und Ausgabenverwaltung als ASP.NET Core MVC-Anwendung.
 Jede angemeldete Person sieht und bearbeitet ausschließlich die eigenen Buchungen.
 
+Es ist ein Schulprojekt, wodurch es auch minimal geahalten wurde. Das Ziel war es NICHT Production Ready Produkt zu bauen, sondern verschiedene .NET Libraries zu Testen bzw. kennenlernen. 
+
+
+## Video
+
+https://github.com/user-attachments/assets/de66e1cc-ef80-42ef-94aa-64b3205aecd5
+
+
+
 ## Technik
 
 - ASP.NET Core MVC (.NET 10)
